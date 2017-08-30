@@ -162,7 +162,8 @@ For a classifier we've chosen a **Linear Support Vector Classification**.
 
 This classifier gives us very good results for this dataset having achieved an accuray of around **99%**
 
-We've also seperated the **training** and **testing** data in a **80/20** fashion 
+We've also seperated the **training** and **testing** data in a **80/20** fashion.
+
 To implement the classifier we've used `sklearn.svm` `LinearSVC` class.
 
 ```python
@@ -241,7 +242,7 @@ Here's an example of the image with the vehicles identified and the correspondin
 ## Video Augmentation
 
 In order to avoid false positives we can use the fact that the images are an ordered sequence and take advantage of the knowladge of previous **N** frames vehicle location to estimate if it's an actual vehicle or a false positive.
-We can then remove there false positives. 
+We can then remove the false positives. 
 
 ```python
 def _detections_last_n_frames(self):
