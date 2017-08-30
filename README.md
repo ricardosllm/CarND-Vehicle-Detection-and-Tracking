@@ -140,6 +140,8 @@ channel3_hist = np.histogram(img[:,:,2], bins=nbins, range=bins_range)
 hist_features = np.concatenate((channel1_hist[0], channel2_hist[0], channel3_hist[0]))
 ```
 
+> For full implementation details please see the [jupyter notebook](Vehicle-Detection-and-Tracking.ipynb)
+
 ## Scalling Features
 
 We scale the features using `sklearn.preprocessing` `StandardScaler`. This allows us standardize the features by removing the mean and scalling to single varience.
@@ -156,6 +158,23 @@ y = np.hstack((np.ones(len(vehicle_features)), np.zeros(len(non_vehicle_features
 
 ## Training the Classifier
 
+For a classifier we've chosen a **Linear Support Vector Classification**. 
+
+This classifier gives us very good results for this dataset having achieved an accuray of around **99%**
+
+We've also seperated the **training** and **testing** data in a **80/20** fashion 
+To implement the classifier we've used `sklearn.svm` `LinearSVC` class.
+
+```python
+from sklearn.svm import LinearSVC
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(scaled_X, y, test_size=0.2, random_state=43)
+linear_svc = LinearSVC()
+linear_svc.fit(X_train, y_train)
+accuracy = round(linear_svc.score(X_test, y_test), 5)
+print('Classifier Accuracy: {}'.format(accuracy))
+```
 
 ## Detecting Vehicles
 
