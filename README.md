@@ -120,11 +120,11 @@ hog_region_features = np.ravel(self.features_hog[:, _y:_y + _s, _x:_x + _s, :, :
  
  > Original: Y channel on YCbCr color space
  
- ![alt text](examples/y-color-space.png "Non Vehicles")
+![alt text](examples/y-color-space.png "Non Vehicles")
  
  > HOG
  
-  ![alt text](examples/hog-set.png "Non Vehicles")
+![alt text](examples/hog-set.png "Non Vehicles")
  
 
 ### Color Channel Histogram
@@ -178,8 +178,119 @@ print('Classifier Accuracy: {}'.format(accuracy))
 
 ## Detecting Vehicles
 
+To finally detect the vehicles in the images we used a sliding window approch. 
+
+To improve its performance we aproximated the vehicle location and size in diferent areas of the image. 
+In the region closer to the bonet, lower in the image, we use a larger window size, as opposed to a region further away, or higher in the image, where we can approximate that the vehicles will be smaller. 
+
+The diference in size is between **80%** and **30%** of the original frame size.
+
+```python
+def _sliding_window_pass(self, img):
+    scales = np.array([0.3, 0.5, 0.65, 0.8])
+    y_top  = np.array([0.6, 0.57, 0.56, 0.55])
+
+    img_detections = np.empty([0, 4], dtype=np.int64)
+
+    for scale, y in zip(scales, y_top):
+        scale_detections = self._scale_and_apply_classifier(img, scale, y, 64)
+        img_detections = np.append(img_detections, scale_detections, axis=0)
+
+    detections, self.heatmap = self._merge_detections(img_detections, img.shape, threshold=1)
+
+    self.history.append(detections)
+```
+
+Here we scale and apply out classifier to identify the vehicles in the image.
+
+```python
+def _scale_and_apply_classifier(self, img, scale, y, k):
+    (height, width, depth) = img.shape
+    scaled = resize((img / 255.0).astype(np.float64),
+                    (int(height * scale), int(width * scale), depth),
+                    preserve_range=True).astype(np.float32)
+
+    features_extractor = ExtractFeatures(scaled)
+    (height, width, depth) = scaled.shape
+    # Placeholder for detections
+    detections = np.empty([0, 4], dtype=np.int)
+
+    y = int(height * y)
+    s = k // 3
+    x_range = np.linspace(0, width - k, (width + s) // s)
+
+    for x in x_range.astype(np.int):
+        features = features_extractor.features(x, y, k)
+        features = self.scaler.transform(np.array(features).reshape(1, -1))
+
+        if self.classifier.predict(features)[0] == 1:
+            detections = np.append(detections, [[x, y, x + k, y + k]], axis=0)
+
+    return (detections / scale).astype(np.int)
+
+```
+
+To implemente the vehicle detection we've create a class, `VehicleDetector`, that abstract away the sliding window analysis and allows us to simply `run` our vehicle detection and return the image with the detection "box" overlayed.
+
+Here's an example of the image with the vehicles identified and the corresponding heatmap
+
+![alt text](examples/single-frame-detection.png)
+
+> For full implementation details please see the [jupyter notebook](Vehicle-Detection-and-Tracking.ipynb)
 
 ## Video Augmentation
 
+In order to avoid false positives we can use the fact that the images are an ordered sequence and take advantage of the knowladge of previous **N** frames vehicle location to estimate if it's an actual vehicle or a false positive.
+We can then remove there false positives. 
+
+```python
+def _detections_last_n_frames(self):
+    detections, _ = self._merge_detections(
+        np.concatenate(np.array(self.history)),
+        self.img_shape,
+        threshold=min(len(self.history), 15)
+    )
+    return detections
+
+def _merge_detections(self, detections, img_shape, threshold):
+    heatmap = np.zeros((img_shape[0], img_shape[1])).astype(np.float)
+    heatmap = self._add_heatmap(heatmap, detections)
+
+    # Apply threshold to remove false positives
+    heatmap[heatmap < threshold] = 0
+    heatmap = np.clip(heatmap, 0, 255)
+
+    labels = label(heatmap)
+    vehicles = np.empty([0, 4], dtype=np.int64)
+
+    # for each detected vehicle:
+    for vehicle in range(1, labels[1] + 1):
+        nonzero = (labels[0] == vehicle).nonzero()
+        nonzero_min_max = [[np.min(nonzero[1]), np.min(nonzero[0]),
+                            np.max(nonzero[1]), np.max(nonzero[0])]]
+        vehicles = np.append(vehicles, nonzero_min_max, axis=0)
+
+    return (vehicles, heatmap)
+
+def _add_heatmap(self, heatmap, detections):
+    for d in detections:
+        heatmap[d[1]:d[3], d[0]:d[2]] += 1
+
+    return heatmap
+```
+
+
+Here's an example of the image with the vehicles identified and the corresponding heatmap, clearly showing false positives
+
+![alt text](examples/single-frame-detection-with-false-positives.png)
+
+> For full implementation details please see the [jupyter notebook](Vehicle-Detection-and-Tracking.ipynb)
+
 
 ## Discussion
+
+The augmented video can be found [here](videos/project_video_augmented.mp4) and it clearly identifies the 2 vehicles that show in the video. However it took too long to produce and could not be used in a real time, live, video stream, for that we would have to optimize the pipeline. 
+
+This is still a very naive approch as it only works in ideal conditions. Changes in weather conditions, time of day and other factors would most likely result in a failure to identify other vehicles in the road and potentially cause an accident.
+
+It gives us a good starting point and a glimpse of what computer vision alone can accomplish with a few lines of code but it's not by any means production ready. 
