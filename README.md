@@ -48,7 +48,11 @@ We then proceed to extract the required features from the dataset.
 
 To achieve this I used a class, `ExtractFeatures` that abstracts away the feature identification, extranction and concatenation.
 
-In this case we choose to extract 3 features, **spatial information**, **Histogram of Oriented Gradients, HOG** for short, and **color channel histogram**. 
+In this case we choose to extract 3 features, **spatial information**, **Histogram of Oriented Gradients, HOG** for short, and **color channel histogram**, all using **YCbCr color space**. 
+
+```python
+self.img = cv2.cvtColor(img, cv2.COLOR_RGB2YCrCb)
+```
 
 ```python
 def features(self, x=0, y=0, s=64):
