@@ -142,6 +142,17 @@ hist_features = np.concatenate((channel1_hist[0], channel2_hist[0], channel3_his
 
 ## Scalling Features
 
+We scale the features using `sklearn.preprocessing` `StandardScaler`. This allows us standardize the features by removing the mean and scalling to single varience.
+
+Standardization of a dataset is a common requirement for many machine learning estimators: they might behave badly if the individual feature do not more or less look like standard normally distributed data.
+
+```python
+from sklearn.preprocessing import StandardScaler
+
+X_scaler = StandardScaler().fit(X)
+scaled_X = X_scaler.transform(X)
+y = np.hstack((np.ones(len(vehicle_features)), np.zeros(len(non_vehicle_features))))
+```
 
 ## Training the Classifier
 
