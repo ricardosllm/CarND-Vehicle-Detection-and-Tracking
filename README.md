@@ -29,7 +29,7 @@ The goal of this project is to reliably identify the location of vehicles in a v
 
 ## Reading Labeled Data
 
-We start by reading and analysing the provided data, this is separated into `vechicles` and `non-vehicles` data. The data set included **8792** examples of vehicle images and **8968** examples of non vehicle images.
+We start by reading and analysing the provided data, this is separated into [`vechicles`](https://s3.amazonaws.com/udacity-sdc/Vehicle_Tracking/vehicles.zip) and [`non-vehicles`](https://s3.amazonaws.com/udacity-sdc/Vehicle_Tracking/non-vehicles.zip) data. The data set included **8792** examples of vehicle images and **8968** examples of non vehicle images.
 
 Here's an example of the dataset:
 
@@ -46,9 +46,9 @@ Here's an example of the dataset:
 
 We then proceed to extract the required features from the dataset.
 
-To achieve this I used a class, `ExtractFeatures` that abstracts away the feature identification, extranction and concatenation.
+To achieve this I used a class, `ExtractFeatures` that abstracts away the feature identification, extraction and concatenation.
 
-In this case we choose to extract 3 features, **spatial information**, **Histogram of Oriented Gradients, HOG** for short, and **color channel histogram**, all using **YCbCr color space**. 
+In this case we choose to extract 3 features, **spatial information**, **Histogram of Oriented Gradients (HOG** for short) and **color channel histogram**, all using **YCbCr color space**. 
 
 ```python
 self.img = cv2.cvtColor(img, cv2.COLOR_RGB2YCrCb)
@@ -81,7 +81,7 @@ spacial_vector = cv2.resize(img, size).ravel()
 
 ### HOG, or Histogram of Oriented Gradients
 
-After a certain amount of experimentation, where we trained and evaluated the classifier with diferent combinations of parameters, found a reasonably combination which produced high levels of accuracy and finally tested running the training multiple times until we reach an average accuracy of **98.9%**. 
+After a certain amount of experimentation, where we trained and evaluated the classifier with diferent combinations of parameters, found a reasonably combination which produced high levels of accuracy and finally tested training the classifier multiple times until we reached an average accuracy of **98.9%**. 
 
 This resulted in a **HOG** with:
  - `10` orientations
@@ -104,7 +104,7 @@ We used the `hog` function from `skimage.feature` like so:
     self.features_hog.append(hog_feature)
 ```
 
-We were then capable of getting features for individual areas of the image by calculating the HOG offsets, `x` horizontal offset, `y` vertical and `s` the side of the square area
+We were then capable of getting features for individual areas of the image by calculating the HOG offsets, horizontal offset `x`, vertical `y` and the side of the square area `s`.
 
 ```python
 _x = max((x // 8) - 1, 0)
@@ -162,7 +162,7 @@ y = np.hstack((np.ones(len(vehicle_features)), np.zeros(len(non_vehicle_features
 
 ## Training the Classifier
 
-For a classifier we've chosen a **Linear Support Vector Classification**. 
+For classifier we've chosen a **Linear Support Vector Classification**. 
 
 This classifier gives us very good results for this dataset having achieved an accuray of around **99%**
 
@@ -206,7 +206,7 @@ def _sliding_window_pass(self, img):
     self.history.append(detections)
 ```
 
-Here we scale and apply out classifier to identify the vehicles in the image.
+Here we scale and apply our classifier to identify the vehicles in the image.
 
 ```python
 def _scale_and_apply_classifier(self, img, scale, y, k):
@@ -294,7 +294,7 @@ Here's an example of the image with the vehicles identified and the correspondin
 
 ## Discussion
 
-The augmented video can be found [here](videos/project_video_augmented.mp4) and it clearly identifies the 2 vehicles that show in the video. However it took too long to produce and could not be used in a real time, live, video stream, for that we would have to optimize the pipeline. 
+The augmented video can be found [here](videos/project_video_augmented.mp4) and it clearly identifies the 2 vehicles that appear in the video. However it took too long to produce and could not be used in a real time, live, video stream, for that we would have to optimize the pipeline. 
 
 I've also applied the vehicle detection to the video from the previous project, [Advanced Lane Finding](https://github.com/ricardosllm/CarND-Advanced-Lane-Finding) and it performs pretty much the same.
 
