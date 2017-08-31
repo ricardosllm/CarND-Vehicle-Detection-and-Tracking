@@ -3,7 +3,7 @@ Udacity CarND Vehicle Detection and Tracking Project
 
 The goal of this project is to reliably identify the location of vehicles in a video stream of a front facing camera mounted centraly in a moving vehicle.
 
-![alt text](videos/project_video_augmented.gif "Result")
+<img src="videos/project_video_augmented.gif" width="49%"/> <img src="videos/advanced_lane_finding_video_augmented.gif" width="49%"/> 
 
 ## Project Structure
 
@@ -295,6 +295,10 @@ Here's an example of the image with the vehicles identified and the correspondin
 ## Discussion
 
 The augmented video can be found [here](videos/project_video_augmented.mp4) and it clearly identifies the 2 vehicles that show in the video. However it took too long to produce and could not be used in a real time, live, video stream, for that we would have to optimize the pipeline. 
+
+I've also applied the vehicle detection to the video from the previous project, [Advanced Lane Finding](https://github.com/ricardosllm/CarND-Advanced-Lane-Finding) and it performs pretty much the same.
+
+![alt text 2](videos/advanced_lane_finding_video_augmented.gif "Comnbined")
 
 This is still a very naive approch as it only works in ideal conditions. Changes in weather conditions, time of day and other factors would most likely result in a failure to identify other vehicles in the road and potentially cause an accident.
 
